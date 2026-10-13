@@ -17,23 +17,31 @@ import com.nusu.repository.MissionRepository;
 import com.nusu.repository.SpaceshipRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
 
+    private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
+
+    private final JdbcTemplate jdbcTemplate;
     private final SpaceshipRepository ships;
     private final AstronautRepository astronauts;
     private final MissionRepository missions;
     private final MissionLogRepository logs;
     private final AuditLogRepository auditLogs;
 
-    public DataSeeder(SpaceshipRepository ships,
+    public DataSeeder(JdbcTemplate jdbcTemplate,
+                      SpaceshipRepository ships,
                       AstronautRepository astronauts,
                       MissionRepository missions,
                       MissionLogRepository logs,
                       AuditLogRepository auditLogs) {
+        this.jdbcTemplate = jdbcTemplate;
         this.ships = ships;
         this.astronauts = astronauts;
         this.missions = missions;
@@ -43,6 +51,39 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        try {
+            migrateSchemaSafely();
+            seedDataSafely();
+        } catch (Exception e) {
+            log.error("Lỗi trong quá trình khởi tạo dữ liệu DataSeeder: {}", e.getMessage(), e);
+        }
+    }
+
+    private void migrateSchemaSafely() {
+        try {
+            // Tự động thêm các cột mới vào PostgreSQL nếu chưa tồn tại (tránh lỗi 500 do schema cũ)
+            jdbcTemplate.execute("ALTER TABLE spaceships ADD COLUMN IF NOT EXISTS fuel_level integer DEFAULT 100");
+            jdbcTemplate.execute("ALTER TABLE spaceships ADD COLUMN IF NOT EXISTS oxygen_level integer DEFAULT 100");
+            jdbcTemplate.execute("ALTER TABLE spaceships ADD COLUMN IF NOT EXISTS speed_kms float8 DEFAULT 7.8");
+            jdbcTemplate.execute("ALTER TABLE spaceships ADD COLUMN IF NOT EXISTS cargo_capacity_tons float8 DEFAULT 10.0");
+            jdbcTemplate.execute("ALTER TABLE spaceships ADD COLUMN IF NOT EXISTS manufacturer varchar(255) DEFAULT 'NUSU Aerospace'");
+            jdbcTemplate.execute("ALTER TABLE spaceships ADD COLUMN IF NOT EXISTS launch_year integer DEFAULT 2024");
+
+            jdbcTemplate.execute("ALTER TABLE astronauts ADD COLUMN IF NOT EXISTS mission_id bigint");
+            jdbcTemplate.execute("ALTER TABLE astronauts ADD COLUMN IF NOT EXISTS space_hours integer DEFAULT 100");
+            jdbcTemplate.execute("ALTER TABLE astronauts ADD COLUMN IF NOT EXISTS heart_rate integer DEFAULT 72");
+            jdbcTemplate.execute("ALTER TABLE astronauts ADD COLUMN IF NOT EXISTS oxygen_saturation integer DEFAULT 98");
+            jdbcTemplate.execute("ALTER TABLE astronauts ADD COLUMN IF NOT EXISTS radiation_level float8 DEFAULT 1.2");
+            jdbcTemplate.execute("ALTER TABLE astronauts ADD COLUMN IF NOT EXISTS blood_type varchar(10) DEFAULT 'O+'");
+            jdbcTemplate.execute("ALTER TABLE astronauts ADD COLUMN IF NOT EXISTS bio text");
+            jdbcTemplate.execute("ALTER TABLE astronauts ADD COLUMN IF NOT EXISTS badges varchar(255) DEFAULT 'CREW_CERTIFIED'");
+            log.info("Schema migration kiểm tra thành công.");
+        } catch (Exception ex) {
+            log.warn("Thông báo schema migration (bỏ qua nếu bảng chưa tạo): {}", ex.getMessage());
+        }
+    }
+
+    private void seedDataSafely() {
         // 1. Cập nhật hoặc tạo Tàu vũ trụ
         Spaceship aurora, nebula, vega, daedalus;
 
@@ -53,7 +94,6 @@ public class DataSeeder implements CommandLineRunner {
             daedalus = createShip("Daedalus-IX", "Prometheus Fusion", 8, ShipStatus.ACTIVE, 99, 100, 24.5, 80.0, "NUSU Deep Exploration", 2026);
             createShip("Phoenix Lunar", "Eagle-Lander Mk2", 3, ShipStatus.RETIRED, 0, 0, 0.0, 8.0, "Lunar Dynamics", 2020);
         } else {
-            // Cập nhật giá trị mặc định cho tàu cũ nếu còn thiếu
             List<Spaceship> existingShips = ships.findAll();
             for (Spaceship s : existingShips) {
                 if (s.getFuelLevel() <= 0 && s.getStatus() == ShipStatus.ACTIVE) s.setFuelLevel(90);
@@ -111,7 +151,7 @@ public class DataSeeder implements CommandLineRunner {
                     vega
             );
 
-            // 3. Tạo Nhật ký cho các nhiệm vụ
+            // Tạo Nhật ký cho các nhiệm vụ
             createLog(artemis, LogLevel.SUCCESS, "Tàu Aurora-1 hoàn tất cú đốt TLI (Trans-Lunar Injection) thành công rực rỡ.");
             createLog(artemis, LogLevel.INFO, "Phi hành đoàn đã vào trạng thái quỹ đạo chuyển tiếp an toàn. Chỉ số oxy ổn định 98%.");
             createLog(artemis, LogLevel.WARNING, "Cảm biến báo nhiệt độ tấm pin mạn phải tăng nhẹ 3.2°C do góc chiếu Mặt Trời.");
@@ -137,7 +177,7 @@ public class DataSeeder implements CommandLineRunner {
             }
         }
 
-        // 4. Tạo Phi hành gia nếu danh sách trống
+        // 3. Tạo Phi hành gia nếu danh sách trống
         if (astronauts.count() == 0) {
             Mission artemis = missions.findAll().isEmpty() ? null : missions.findAll().get(0);
             createAstronaut("Nguyễn Minh An", "Chỉ huy Trưởng", "Việt Nam", AstronautStatus.ON_MISSION, aurora, artemis,
@@ -156,7 +196,7 @@ public class DataSeeder implements CommandLineRunner {
                     "MASTER_ENGINEER,CREW_CERTIFIED");
         }
 
-        // 5. Tạo Audit logs khởi đầu nếu chưa có
+        // 4. Tạo Audit logs khởi đầu nếu chưa có
         if (auditLogs.count() == 0) {
             auditLogs.save(new AuditLog("SYSTEM_BOOT", "Kernel", "Hệ thống NUSU Mission Control khởi động toàn diện."));
             auditLogs.save(new AuditLog("DISPATCH_MISSION", "Giám đốc Nhiệm vụ", "Phê duyệt chiến dịch ARTEMIS-VII và ARES-ONE."));
