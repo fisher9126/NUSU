@@ -657,9 +657,20 @@ async function refreshAll() {
   }
 }
 
+// Screen Titles Dictionary
+const SCREEN_TITLES = {
+  overview: 'TỔNG QUAN HỆ THỐNG',
+  missions: 'CHIẾN DỊCH & NHIỆM VỤ VŨ TRỤ',
+  ships: 'HẠM ĐỘI TÀU VŨ TRỤ',
+  astronauts: 'DANH SÁCH PHI HÀNH ĐOÀN',
+  simulation: 'TRUNG TÂM GIẢ LẬP & KHỦNG HOẢNG',
+  discovery: 'DỮ LIỆU THIÊN VĂN NASA & ISS',
+  audit: 'NHẬT KÝ CHỈ HUY & KIỂM TOÁN'
+};
+
 // ================= EVENT LISTENERS SETUP =================
 function setupEventListeners() {
-  // Navigation Tabs
+  // Navigation Tabs in Sidebar
   document.querySelectorAll('.nav-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       playSound('click');
@@ -667,12 +678,39 @@ function setupEventListeners() {
       const targetPanel = 'panel-' + tab.dataset.tab;
       document.querySelectorAll('.view-panel').forEach(p => p.classList.toggle('active', p.id === targetPanel));
 
+      // Update Screen Header Title
+      if ($('screen-title') && SCREEN_TITLES[tab.dataset.tab]) {
+        $('screen-title').textContent = SCREEN_TITLES[tab.dataset.tab];
+      }
+
+      // Close mobile sidebar if open
+      $('sidebar').classList.remove('open');
+
       // Trigger lazy loads
       if (tab.dataset.tab === 'simulation') loadCrisisDrills();
       else if (tab.dataset.tab === 'discovery') loadDiscovery();
       else if (tab.dataset.tab === 'audit') loadAuditLogs();
     });
   });
+
+  // Sidebar Collapse/Expand Toggle
+  const sidebarToggle = $('sidebar-toggle-btn');
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', () => {
+      playSound('click');
+      const isCollapsed = $('sidebar').classList.toggle('collapsed');
+      sidebarToggle.textContent = isCollapsed ? '▶' : '◀';
+    });
+  }
+
+  // Mobile Menu Drawer Toggle
+  const mobileMenuBtn = $('mobile-menu-btn');
+  if (mobileMenuBtn) {
+    mobileMenuBtn.addEventListener('click', () => {
+      playSound('click');
+      $('sidebar').classList.toggle('open');
+    });
+  }
 
   // Overview Quick Link to Missions Tab
   $('go-missions-tab').addEventListener('click', () => {
@@ -689,6 +727,7 @@ function setupEventListeners() {
   // Role Selector
   $('role-select').addEventListener('change', (e) => {
     state.role = e.target.value;
+    if ($('sidebar-role-badge')) $('sidebar-role-badge').textContent = state.role;
     toast(`Đã chuyển vai trò sang: ${e.target.options[e.target.selectedIndex].text}`);
     playSound('click');
   });
