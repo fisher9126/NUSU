@@ -8,5 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface AstronautRepository extends JpaRepository<Astronaut, Long> {
     List<Astronaut> findBySpaceshipId(Long spaceshipId);
     long countBySpaceshipId(Long spaceshipId);
+    List<Astronaut> findByMissionId(Long missionId);
+    long countByMissionId(Long missionId);
     long countByStatus(AstronautStatus status);
 }

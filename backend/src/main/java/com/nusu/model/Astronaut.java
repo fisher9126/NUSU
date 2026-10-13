@@ -36,6 +36,25 @@ public class Astronaut {
     @JoinColumn(name = "spaceship_id")
     private Spaceship spaceship;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "mission_id")
+    private Mission mission;
+
+    private int spaceHours = 120; // Giờ ngoài không gian
+
+    private int heartRate = 72; // BPM nhịp tim sinh tồn
+
+    private int oxygenSaturation = 98; // SpO2 (%)
+
+    private double radiationLevel = 1.2; // Bức xạ phơi nhiễm (mSv)
+
+    private String bloodType = "O+";
+
+    @Column(length = 1000)
+    private String bio;
+
+    private String badges = "CREW_CERTIFIED"; // Phân tách dấu phẩy
+
     public Long getId() { return id; }
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
@@ -47,4 +66,20 @@ public class Astronaut {
     public void setStatus(AstronautStatus status) { this.status = status; }
     public Spaceship getSpaceship() { return spaceship; }
     public void setSpaceship(Spaceship spaceship) { this.spaceship = spaceship; }
+    public Mission getMission() { return mission; }
+    public void setMission(Mission mission) { this.mission = mission; }
+    public int getSpaceHours() { return spaceHours; }
+    public void setSpaceHours(int spaceHours) { this.spaceHours = spaceHours; }
+    public int getHeartRate() { return heartRate; }
+    public void setHeartRate(int heartRate) { this.heartRate = heartRate; }
+    public int getOxygenSaturation() { return oxygenSaturation; }
+    public void setOxygenSaturation(int oxygenSaturation) { this.oxygenSaturation = oxygenSaturation; }
+    public double getRadiationLevel() { return radiationLevel; }
+    public void setRadiationLevel(double radiationLevel) { this.radiationLevel = radiationLevel; }
+    public String getBloodType() { return bloodType; }
+    public void setBloodType(String bloodType) { this.bloodType = bloodType; }
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
+    public String getBadges() { return badges; }
+    public void setBadges(String badges) { this.badges = badges; }
 }

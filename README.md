@@ -17,17 +17,28 @@ NUSU/
 └── README.md
 ```
 
-## API
+## API & Swagger UI
+
+Tài liệu API tương tác trực quan qua Swagger UI có sẵn tại: `http://localhost:WEB_PORT/swagger-ui/index.html` (hoặc `/v3/api-docs`).
 
 | Method | Đường dẫn | Mô tả |
 | --- | --- | --- |
-| GET | `/api/stats` | Số liệu tổng quan |
-| GET / POST | `/api/spaceships` | Danh sách / thêm tàu |
-| GET / PUT / DELETE | `/api/spaceships/{id}` | Xem / sửa / xóa tàu |
-| GET / POST | `/api/astronauts` | Danh sách / thêm phi hành gia |
-| GET / PUT / DELETE | `/api/astronauts/{id}` | Xem / sửa / xóa phi hành gia |
+| GET | `/api/stats` | Số liệu thống kê tổng quan (Hạm đội, phi hành gia, chiến dịch, nhiên liệu, ngân sách) |
+| GET / POST | `/api/spaceships` | Danh sách / thêm tàu vũ trụ (kèm nhiên liệu, oxy, vận tốc, tải trọng) |
+| GET / PUT / DELETE | `/api/spaceships/{id}` | Xem / sửa / xóa tàu vũ trụ |
+| GET / POST | `/api/astronauts` | Danh sách / thêm phi hành gia (kèm nhịp tim BPM, SpO2, giờ bay, huy hiệu) |
+| GET / PUT / DELETE | `/api/astronauts/{id}` | Xem / sửa / xóa hồ sơ phi hành gia |
+| GET / POST | `/api/missions` | Danh sách / tạo chiến dịch vũ trụ (Artemis, Ares Mars, ISS...) |
+| GET / PUT / DELETE | `/api/missions/{id}` | Xem / sửa / hủy chiến dịch vũ trụ |
+| GET / POST | `/api/missions/{id}/logs` | Xem / thêm nhật ký sự kiện biến cố của chiến dịch |
+| GET | `/api/missions/logs/recent` | 20 sự kiện viễn trắc gần nhất trên toàn hệ thống |
+| GET | `/api/simulation/telemetry` | Viễn trắc thời gian thực trạm ISS (Độ cao, vận tốc, áp suất khoang) |
+| GET / POST | `/api/simulation/crisis` | Kịch bản diễn tập khủng hoảng & giải quyết sự cố |
+| GET | `/api/simulation/calculator` | Máy tính quỹ đạo Delta-v & chi phí tiêu hao nhiên liệu phóng |
+| GET | `/api/simulation/nasa/apod` | Ảnh thiên văn trong ngày từ NASA Astronomy Picture of the Day |
+| GET / POST | `/api/audit-logs` | Lịch sử thao tác truy vết bảo mật & phát điện tín vô tuyến |
 
-Quy tắc nghiệp vụ: tên tàu không được trùng; không phân công vượt sức chứa của tàu; xóa tàu thì phi hành gia trên tàu đó chuyển về "chưa phân công". Lần chạy đầu tự thêm vài dữ liệu mẫu.
+Quy tắc nghiệp vụ: tên tàu & mã nhiệm vụ không được trùng; không phân công vượt sức chứa của tàu; xóa tàu thì phi hành gia trên tàu đó chuyển về "chưa phân công"; các thao tác thay đổi dữ liệu đều được ghi lại trong Nhật Ký Kiểm Toán (Audit Trail). Lần chạy đầu tự động nạp dữ liệu mẫu phong phú.
 
 ## Chạy thử trên máy cá nhân
 

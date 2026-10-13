@@ -2,104 +2,760 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NUSU - Quản lý tàu vũ trụ và phi hành gia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NUSU - Trung Tâm Điều Hành Không Gian & Phi Hành Đoàn</title>
+  <meta name="description" content="Hệ thống điều hành chiến dịch vũ trụ, quản lý phi hành đoàn, viễn trắc telemetry và mô phỏng khủng hoảng không gian.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="theme-deepspace">
+  <!-- Top Navigation Bar -->
   <header class="topbar">
-    <h1>NUSU</h1>
-    <p>Trung tâm quản lý tàu vũ trụ và phi hành gia</p>
+    <div class="brand">
+      <div class="brand-logo">
+        <span class="orbit-ring"></span>
+        <span class="core-dot"></span>
+      </div>
+      <div class="brand-text">
+        <h1 class="logo-title">NUSU</h1>
+        <span class="logo-sub">DEEP SPACE MISSION CONTROL</span>
+      </div>
+    </div>
+
+    <!-- Live Telemetry Ticker -->
+    <div class="telemetry-bar">
+      <div class="tele-item"><span class="tele-label">DSN LINK:</span> <span class="tele-val text-green" id="tele-status">OPTIMAL</span></div>
+      <div class="tele-item"><span class="tele-label">ISS QUỸ ĐẠO:</span> <span class="tele-val" id="tele-iss-alt">408.2 km</span></div>
+      <div class="tele-item"><span class="tele-label">VẬN TỐC:</span> <span class="tele-val" id="tele-iss-vel">7.66 km/s</span></div>
+      <div class="tele-item"><span class="tele-label">ÁP SUẤT KHOANG:</span> <span class="tele-val text-cyan" id="tele-pressure">101.3 kPa</span></div>
+    </div>
+
+    <!-- Header Actions & Role Switcher -->
+    <div class="top-controls">
+      <div class="time-widget">
+        <span class="time-label">EARTH UTC</span>
+        <span class="time-display" id="utc-clock">00:00:00 UTC</span>
+      </div>
+
+      <div class="role-selector-wrap">
+        <label for="role-select" class="role-label">VAI TRÒ:</label>
+        <select id="role-select" class="role-select" title="Đổi quyền hạn người dùng">
+          <option value="DIRECTOR">Giám Đốc (Director)</option>
+          <option value="COMMANDER">Chỉ Huy Trưởng (Commander)</option>
+          <option value="ENGINEER">Kỹ Sư Trưởng (Engineer)</option>
+          <option value="GUEST">Khách Tham Quan (Guest)</option>
+        </select>
+      </div>
+
+      <button id="audio-toggle" class="btn icon-btn" title="Bật/Tắt hiệu ứng âm thanh Sci-Fi">
+        <span id="audio-icon">🔊</span>
+      </button>
+
+      <a href="/swagger-ui/index.html" target="_blank" class="btn api-link-btn" title="Xem tài liệu OpenAPI / Swagger">
+        <span class="api-badge">API</span> DOCS
+      </a>
+    </div>
   </header>
 
-  <main>
-    <section class="stats">
-      <div class="card"><span id="stat-ships">0</span><small>Tàu vũ trụ</small></div>
-      <div class="card"><span id="stat-active">0</span><small>Tàu đang hoạt động</small></div>
-      <div class="card"><span id="stat-astronauts">0</span><small>Phi hành gia</small></div>
-      <div class="card"><span id="stat-mission">0</span><small>Đang làm nhiệm vụ</small></div>
+  <!-- Main Mission Control App -->
+  <main class="control-center">
+
+    <!-- KPI Summary Stats Cards -->
+    <section class="kpi-grid">
+      <div class="kpi-card accent-cyan">
+        <div class="kpi-icon">🚀</div>
+        <div class="kpi-content">
+          <div class="kpi-num" id="stat-missions">0</div>
+          <div class="kpi-label">Chiến Dịch Vũ Trụ</div>
+          <div class="kpi-sub" id="stat-active-missions">0 đang hoạt động</div>
+        </div>
+      </div>
+
+      <div class="kpi-card accent-blue">
+        <div class="kpi-icon">🛸</div>
+        <div class="kpi-content">
+          <div class="kpi-num" id="stat-ships">0</div>
+          <div class="kpi-label">Hạm Đội Tàu Vũ Trụ</div>
+          <div class="kpi-sub" id="stat-active-ships">0 sẵn sàng bay</div>
+        </div>
+      </div>
+
+      <div class="kpi-card accent-purple">
+        <div class="kpi-icon">👨‍🚀</div>
+        <div class="kpi-content">
+          <div class="kpi-num" id="stat-astronauts">0</div>
+          <div class="kpi-label">Phi Hành Gia</div>
+          <div class="kpi-sub" id="stat-mission-astro">0 trên quỹ đạo</div>
+        </div>
+      </div>
+
+      <div class="kpi-card accent-amber">
+        <div class="kpi-icon">⚡</div>
+        <div class="kpi-content">
+          <div class="kpi-num"><span id="stat-fuel">0</span><small>%</small></div>
+          <div class="kpi-label">Nhiên Liệu Dự Trữ</div>
+          <div class="kpi-sub">Trung bình hạm đội</div>
+        </div>
+      </div>
+
+      <div class="kpi-card accent-green">
+        <div class="kpi-icon">💨</div>
+        <div class="kpi-content">
+          <div class="kpi-num"><span id="stat-oxygen">0</span><small>%</small></div>
+          <div class="kpi-label">Dự Trữ Dưỡng Khí O₂</div>
+          <div class="kpi-sub">Khoang sinh tồn an toàn</div>
+        </div>
+      </div>
+
+      <div class="kpi-card accent-gold">
+        <div class="kpi-icon">💎</div>
+        <div class="kpi-content">
+          <div class="kpi-num">$<span id="stat-budget">0</span><small>M</small></div>
+          <div class="kpi-label">Ngân Sách Đầu Tư</div>
+          <div class="kpi-sub">Tổng giá trị nhiệm vụ</div>
+        </div>
+      </div>
     </section>
 
-    <nav class="tabs">
-      <button class="tab active" data-tab="ships">Tàu vũ trụ</button>
-      <button class="tab" data-tab="astronauts">Phi hành gia</button>
+    <!-- Main Navigation Tabs -->
+    <nav class="nav-tabs" role="tablist">
+      <button class="nav-tab active" data-tab="overview" id="tab-btn-overview">
+        <span class="tab-icon">🌐</span> Tổng Quan
+      </button>
+      <button class="nav-tab" data-tab="missions" id="tab-btn-missions">
+        <span class="tab-icon">🎯</span> Chiến Dịch & Nhiệm Vụ
+      </button>
+      <button class="nav-tab" data-tab="ships" id="tab-btn-ships">
+        <span class="tab-icon">🛸</span> Hạm Đội Tàu
+      </button>
+      <button class="nav-tab" data-tab="astronauts" id="tab-btn-astronauts">
+        <span class="tab-icon">👨‍🚀</span> Phi Hành Đoàn
+      </button>
+      <button class="nav-tab" data-tab="simulation" id="tab-btn-simulation">
+        <span class="tab-icon">⚡</span> Giả Lập & Khủng Hoảng
+      </button>
+      <button class="nav-tab" data-tab="discovery" id="tab-btn-discovery">
+        <span class="tab-icon">🛰️</span> NASA & Thiên Văn
+      </button>
+      <button class="nav-tab" data-tab="audit" id="tab-btn-audit">
+        <span class="tab-icon">📜</span> Nhật Ký Chỉ Huy
+      </button>
     </nav>
 
-    <section id="tab-ships" class="panel">
-      <div class="toolbar">
-        <h2>Danh sách tàu vũ trụ</h2>
-        <button class="btn primary" id="add-ship">Thêm tàu</button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Tên tàu</th><th>Mẫu</th><th>Phi hành đoàn</th><th>Trạng thái</th><th></th></tr>
-          </thead>
-          <tbody id="ships-body"></tbody>
-        </table>
+    <!-- ==================== TAB 0: TỔNG QUAN (OVERVIEW) ==================== -->
+    <section id="panel-overview" class="view-panel active">
+      <div class="overview-grid">
+        <!-- Radar & Countdown Column -->
+        <div class="overview-col-left">
+          <div class="panel-box radar-box">
+            <div class="box-header">
+              <h3><span class="dot-live"></span> RADAR THEO DÕI QUỸ ĐẠO TRÁI ĐẤT</h3>
+              <span class="badge-mini">ACTIVE SWEEP 360°</span>
+            </div>
+            <div class="radar-viewport">
+              <div class="radar-circle circle-1"></div>
+              <div class="radar-circle circle-2"></div>
+              <div class="radar-circle circle-3"></div>
+              <div class="radar-line-h"></div>
+              <div class="radar-line-v"></div>
+              <div class="radar-sweep"></div>
+              <div class="earth-center">🌍</div>
+              <!-- Simulated blips -->
+              <div class="radar-blip blip-1" title="Tàu Aurora-1 (In-Transit)"></div>
+              <div class="radar-blip blip-2" title="Trạm ISS (LEO 408km)"></div>
+              <div class="radar-blip blip-3" title="Tàu Vega (Orbiting)"></div>
+            </div>
+            <div class="radar-legend">
+              <span><i class="legend-dot green"></i> Aurora-1 (TLI)</span>
+              <span><i class="legend-dot cyan"></i> ISS Trạm Không Gian</span>
+              <span><i class="legend-dot amber"></i> Vega Starliner</span>
+            </div>
+          </div>
+
+          <!-- Launch Countdown Widget -->
+          <div class="panel-box countdown-box">
+            <div class="box-header">
+              <h3>⏱️ ĐẾM NGƯỢC NHIỆM VỤ TIẾP THEO: ARES-ONE (SAO HỎA)</h3>
+              <span class="badge-mini text-amber">T-MINUS</span>
+            </div>
+            <div class="countdown-display" id="mission-countdown">
+              <div class="count-unit"><span class="count-num" id="cd-days">48</span><span class="count-label">NGÀY</span></div>
+              <div class="count-sep">:</div>
+              <div class="count-unit"><span class="count-num" id="cd-hours">14</span><span class="count-label">GIỜ</span></div>
+              <div class="count-sep">:</div>
+              <div class="count-unit"><span class="count-num" id="cd-mins">32</span><span class="count-label">PHÚT</span></div>
+              <div class="count-sep">:</div>
+              <div class="count-unit"><span class="count-num" id="cd-secs">50</span><span class="count-label">GIÂY</span></div>
+            </div>
+            <p class="count-meta">Địa điểm phóng: Bệ phóng Launch Complex 39A • Tàu: Daedalus-IX • Mục tiêu: Utopia Planitia</p>
+          </div>
+        </div>
+
+        <!-- Right Column: Quick Status & Recent Transmissions -->
+        <div class="overview-col-right">
+          <!-- Active Missions Highlight Card -->
+          <div class="panel-box highlight-missions-box">
+            <div class="box-header">
+              <h3>🛸 CHIẾN DỊCH ĐANG DIỄN RA</h3>
+              <button class="btn-text" id="go-missions-tab">Xem tất cả →</button>
+            </div>
+            <div id="overview-missions-list" class="mini-cards-list">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Live Comms / Recent Log Stream -->
+          <div class="panel-box logs-stream-box">
+            <div class="box-header">
+              <h3>📡 ĐÀM THOẠI & NHẬT KÝ VIỄN TRẮC GẦN ĐÂY</h3>
+              <span class="badge-mini text-cyan">LIVE STREAM</span>
+            </div>
+            <div class="stream-log-container" id="overview-logs-stream">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section id="tab-astronauts" class="panel" hidden>
-      <div class="toolbar">
-        <h2>Danh sách phi hành gia</h2>
-        <button class="btn primary" id="add-astronaut">Thêm phi hành gia</button>
+    <!-- ==================== TAB 1: CHIẾN DỊCH & NHIỆM VỤ ==================== -->
+    <section id="panel-missions" class="view-panel">
+      <div class="panel-toolbar">
+        <div class="search-filter-group">
+          <input type="text" id="search-mission" class="input-search" placeholder="🔍 Tìm theo mã hoặc tên chiến dịch...">
+          <select id="filter-mission-status" class="select-filter">
+            <option value="">Tất cả trạng thái</option>
+            <option value="IN_TRANSIT">Đang hành trình (In-Transit)</option>
+            <option value="ORBITING">Đang trên quỹ đạo (Orbiting)</option>
+            <option value="COUNTDOWN">Đang đếm ngược (Countdown)</option>
+            <option value="PLANNING">Lập kế hoạch (Planning)</option>
+            <option value="LANDED">Đã đổ bộ (Landed)</option>
+            <option value="COMPLETED">Đã hoàn thành (Completed)</option>
+            <option value="ABORTED">Đã hủy (Aborted)</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="btn-add-mission">
+          <span>+</span> Khởi Tạo Chiến Dịch Mới
+        </button>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Họ tên</th><th>Cấp bậc</th><th>Quốc tịch</th><th>Trạng thái</th><th>Tàu</th><th></th></tr>
-          </thead>
-          <tbody id="astronauts-body"></tbody>
-        </table>
+
+      <div class="missions-grid-container" id="missions-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: HẠM ĐỘI TÀU VŨ TRỤ ==================== -->
+    <section id="panel-ships" class="view-panel">
+      <div class="panel-toolbar">
+        <div class="search-filter-group">
+          <input type="text" id="search-ship" class="input-search" placeholder="🔍 Tìm theo tên tàu hoặc mẫu chế tạo...">
+          <select id="filter-ship-status" class="select-filter">
+            <option value="">Tất cả trạng thái</option>
+            <option value="ACTIVE">Đang hoạt động</option>
+            <option value="MAINTENANCE">Đang bảo trì kỹ thuật</option>
+            <option value="RETIRED">Ngừng hoạt động / Lưu kho</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="btn-add-ship">
+          <span>+</span> Đăng Ký Tàu Vũ Trụ Mới
+        </button>
+      </div>
+
+      <div class="table-card">
+        <div class="table-responsive">
+          <table class="nusu-table">
+            <thead>
+              <tr>
+                <th>TÊN TÀU</th>
+                <th>MẪU / NHÀ SẢN XUẤT</th>
+                <th>PHI HÀNH ĐOÀN</th>
+                <th>NHIÊN LIỆU</th>
+                <th>DƯỠNG KHÍ O₂</th>
+                <th>VẬN TỐC</th>
+                <th>TẢI TRỌNG</th>
+                <th>TRẠNG THÁI</th>
+                <th class="text-right">THAO TÁC</th>
+              </tr>
+            </thead>
+            <tbody id="ships-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: PHI HÀNH ĐOÀN ==================== -->
+    <section id="panel-astronauts" class="view-panel">
+      <div class="panel-toolbar">
+        <div class="search-filter-group">
+          <input type="text" id="search-astro" class="input-search" placeholder="🔍 Tìm theo tên phi hành gia hoặc quốc tịch...">
+          <select id="filter-astro-status" class="select-filter">
+            <option value="">Tất cả trạng thái</option>
+            <option value="READY">Sẵn sàng điều động</option>
+            <option value="ON_MISSION">Đang thực hiện nhiệm vụ</option>
+            <option value="RETIRED">Đã nghỉ hưu / Huấn luyện viên</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="btn-add-astronaut">
+          <span>+</span> Tuyển Chọn Phi Hành Gia
+        </button>
+      </div>
+
+      <div class="astronauts-grid-container" id="astronauts-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: MÔ PHỎNG SỰ CỐ & TÍNH TOÁN ==================== -->
+    <section id="panel-simulation" class="view-panel">
+      <div class="sim-wrapper">
+        <!-- Crisis Center -->
+        <div class="sim-section">
+          <div class="sim-header">
+            <h2>🚨 TRUNG TÂM DIỄN TẬP KHỦNG HOẢNG KHÔNG GIAN (CRISIS DRILLS)</h2>
+            <p>Mô phỏng sự cố thực tế ngoài vũ trụ. Chỉ huy trưởng phải đưa ra quyết định chính xác trong thời gian thực.</p>
+          </div>
+          <div class="crisis-cards-grid" id="crisis-container">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Orbital Calculator -->
+        <div class="sim-section calculator-section">
+          <div class="sim-header">
+            <h2>📐 MÁY TÍNH TOÁN DELTA-V & NHIÊN LIỆU PHÓNG (ORBITAL CALCULATOR)</h2>
+            <p>Ước tính tiêu hao năng lượng Delta-v (km/s), trọng lượng nhiên liệu cần nạp và tổng chi phí ước tính dựa trên công thức Tsiolkovsky.</p>
+          </div>
+          <div class="calc-card">
+            <div class="calc-form-grid">
+              <div class="form-group">
+                <label>Đích đến du hành:</label>
+                <select id="calc-dest" class="form-control">
+                  <option value="LEO">Quỹ đạo Trái Đất thấp (LEO - 400km)</option>
+                  <option value="MOON" selected>Mặt Trăng (Lunar Orbit & Landing)</option>
+                  <option value="MARS">Sao Hỏa (Mars Transfer & Insertion)</option>
+                  <option value="EUROPA">Mặt trăng Europa - Sao Mộc (Deep Space)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Khối lượng hàng hoá / Modun (Tấn):</label>
+                <input type="number" id="calc-payload" class="form-control" value="25" min="1" max="500">
+              </div>
+              <div class="form-group">
+                <label>Số lượng phi hành đoàn (Người):</label>
+                <input type="number" id="calc-crew" class="form-control" value="4" min="1" max="20">
+              </div>
+              <div class="form-group calc-btn-cell">
+                <button class="btn btn-primary btn-block" id="btn-run-calc">⚡ TÍNH TOÁN NGAY</button>
+              </div>
+            </div>
+
+            <!-- Calc Results Output -->
+            <div class="calc-result-box" id="calc-result">
+              <div class="calc-stat-item">
+                <span class="calc-label">VẬN TỐC DELTA-V</span>
+                <span class="calc-val text-cyan" id="res-deltav">5.9 km/s</span>
+              </div>
+              <div class="calc-stat-item">
+                <span class="calc-label">NHIÊN LIỆU CẦN NẠP</span>
+                <span class="calc-val text-amber" id="res-fuel">142.1 tấn</span>
+              </div>
+              <div class="calc-stat-item">
+                <span class="calc-label">THỜI GIAN BAY</span>
+                <span class="calc-val text-green" id="res-days">3 ngày</span>
+              </div>
+              <div class="calc-stat-item">
+                <span class="calc-label">CHI PHÍ ƯỚC TÍNH</span>
+                <span class="calc-val text-gold" id="res-cost">$365.5 Triệu USD</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 5: KHÁM PHÁ THIÊN VĂN NASA ==================== -->
+    <section id="panel-discovery" class="view-panel">
+      <div class="discovery-grid">
+        <div class="panel-box apod-box">
+          <div class="box-header">
+            <h3>🌌 ẢNH THIÊN VĂN TRONG NGÀY (NASA APOD)</h3>
+            <span class="badge-mini text-cyan" id="apod-date">HÔM NAY</span>
+          </div>
+          <div class="apod-content-wrap">
+            <div class="apod-image-holder">
+              <img id="apod-img" src="" alt="NASA APOD" class="apod-img">
+            </div>
+            <div class="apod-info">
+              <h4 id="apod-title">Đang kết nối dữ liệu NASA...</h4>
+              <p class="apod-copyright" id="apod-author"></p>
+              <p class="apod-desc" id="apod-explanation"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-box iss-tracker-box">
+          <div class="box-header">
+            <h3>🛰️ TRẠM VŨ TRỤ QUỐC TẾ (ISS LIVE TRACKER)</h3>
+            <span class="badge-mini text-green">408 KM ALTITUDE</span>
+          </div>
+          <div class="iss-details-view">
+            <div class="iss-badge-card">
+              <div class="iss-kpi"><span class="kpi-tag">TỐC ĐỘ</span><span class="kpi-val" id="iss-kpi-speed">27,600 km/h</span></div>
+              <div class="iss-kpi"><span class="kpi-tag">THỜI GIAN 1 VÒNG</span><span class="kpi-val">92.68 phút</span></div>
+              <div class="iss-kpi"><span class="kpi-tag">GÓC NGHIÊNG QUỸ ĐẠO</span><span class="kpi-val">51.64°</span></div>
+              <div class="iss-kpi"><span class="kpi-tag">PHI HÀNH ĐOÀN HIỆN TẠI</span><span class="kpi-val text-cyan">7 nhà du hành</span></div>
+            </div>
+            <div class="iss-fact">
+              <p>💡 <em>"Trạm Vũ trụ Quốc tế ISS di chuyển với tốc độ khoảng 7.66 km/s, mỗi ngày bay vòng quanh Trái Đất 16 lần và đón 16 lần bình minh cùng hoàng hôn."</em></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 6: NHẬT KÝ KIỂM TOÁN & ĐÀM THOẠI ==================== -->
+    <section id="panel-audit" class="view-panel">
+      <div class="audit-split-grid">
+        <!-- Audit History List -->
+        <div class="panel-box audit-box">
+          <div class="box-header">
+            <h3>📜 LỊCH SỬ THAO TÁC HỆ THỐNG & TRUY VẾT BẢO MẬT</h3>
+            <button class="btn btn-secondary btn-sm" id="btn-refresh-audit">Làm mới</button>
+          </div>
+          <div class="audit-list-holder">
+            <table class="nusu-table audit-table">
+              <thead>
+                <tr>
+                  <th>THỜI GIAN</th>
+                  <th>HÀNH ĐỘNG</th>
+                  <th>NGƯỜI THỰC HIỆN</th>
+                  <th>CHI TIẾT</th>
+                </tr>
+              </thead>
+              <tbody id="audit-tbody">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Comms Dispatcher Box -->
+        <div class="panel-box comms-dispatch-box">
+          <div class="box-header">
+            <h3>📻 PHÁT THÔNG ĐIỆP ĐÀM THOẠI KHÔNG GIAN</h3>
+            <span class="badge-mini text-cyan">VHF/UHF CHANNEL</span>
+          </div>
+          <form id="comms-form" class="comms-form">
+            <div class="form-group">
+              <label>Kênh phát sóng:</label>
+              <select id="comms-channel" class="form-control">
+                <option value="COMMAND_NET">Toàn mạng chỉ huy NUSU Ground</option>
+                <option value="LUNAR_GATEWAY">Kênh liên lạc Mặt Trăng (Lunar Net)</option>
+                <option value="DEEP_SPACE">Mạng lưới Không gian Sâu (Deep Space Network)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Nội dung điện tín:</label>
+              <textarea id="comms-message" class="form-control" rows="4" placeholder="Nhập bức điện gửi phi hành đoàn hoặc trạm mặt đất..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">📡 PHÁT BỨC ĐIỆN VÔ TUYẾN</button>
+          </form>
+        </div>
       </div>
     </section>
   </main>
 
-  <dialog id="shipDialog">
-    <form id="shipForm">
-      <h3 id="shipTitle">Thêm tàu vũ trụ</h3>
-      <input type="hidden" id="ship-id">
-      <label>Tên tàu <input id="ship-name" required maxlength="100"></label>
-      <label>Mẫu tàu <input id="ship-model" required maxlength="100"></label>
-      <label>Sức chứa (người) <input id="ship-capacity" type="number" min="1" max="100" value="4" required></label>
-      <label>Trạng thái
-        <select id="ship-status">
-          <option value="ACTIVE">Hoạt động</option>
-          <option value="MAINTENANCE">Bảo trì</option>
-          <option value="RETIRED">Ngừng hoạt động</option>
-        </select>
-      </label>
-      <div class="form-actions">
-        <button type="button" class="btn" data-close="shipDialog">Hủy</button>
-        <button type="submit" class="btn primary">Lưu</button>
+  <!-- ==================== MODALS / DIALOGS ==================== -->
+
+  <!-- 1. Modal Thêm / Sửa Tàu Vũ Trụ -->
+  <dialog id="ship-modal" class="nusu-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="ship-modal-title">Đăng Ký Tàu Vũ Trụ</h3>
+        <button class="modal-close" data-close="ship-modal">✕</button>
       </div>
-    </form>
+      <form id="ship-form" class="modal-form">
+        <input type="hidden" id="ship-id">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tên tàu vũ trụ *</label>
+            <input type="text" id="ship-name" class="form-control" placeholder="vd: Aurora-1" required maxlength="100">
+          </div>
+          <div class="form-group">
+            <label>Mẫu / Phiên bản *</label>
+            <input type="text" id="ship-model" class="form-control" placeholder="vd: Falcon-Heavy X" required maxlength="100">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Sức chứa phi hành đoàn *</label>
+            <input type="number" id="ship-capacity" class="form-control" min="1" max="100" value="4" required>
+          </div>
+          <div class="form-group">
+            <label>Trạng thái hoạt động *</label>
+            <select id="ship-status" class="form-control">
+              <option value="ACTIVE">Hoạt động bình thường</option>
+              <option value="MAINTENANCE">Đang bảo trì kỹ thuật</option>
+              <option value="RETIRED">Ngừng hoạt động</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nhiên liệu ban đầu (%)</label>
+            <input type="number" id="ship-fuel" class="form-control" min="0" max="100" value="100">
+          </div>
+          <div class="form-group">
+            <label>Dưỡng khí O₂ (%)</label>
+            <input type="number" id="ship-oxygen" class="form-control" min="0" max="100" value="100">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Vận tốc hành trình (km/s)</label>
+            <input type="number" step="0.1" id="ship-speed" class="form-control" value="7.8">
+          </div>
+          <div class="form-group">
+            <label>Sức chứa hàng hóa (Tấn)</label>
+            <input type="number" step="0.1" id="ship-cargo" class="form-control" value="15.0">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Hãng chế tạo</label>
+            <input type="text" id="ship-manufacturer" class="form-control" value="NUSU Aerospace">
+          </div>
+          <div class="form-group">
+            <label>Năm hạ thủy</label>
+            <input type="number" id="ship-year" class="form-control" value="2024">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="ship-modal">Hủy</button>
+          <button type="submit" class="btn btn-primary">Lưu Tàu Vũ Trụ</button>
+        </div>
+      </form>
+    </div>
   </dialog>
 
-  <dialog id="astroDialog">
-    <form id="astroForm">
-      <h3 id="astroTitle">Thêm phi hành gia</h3>
-      <input type="hidden" id="astro-id">
-      <label>Họ tên <input id="astro-name" required maxlength="100"></label>
-      <label>Cấp bậc <input id="astro-rank" required maxlength="100" placeholder="Chỉ huy, Phi công, Kỹ sư..."></label>
-      <label>Quốc tịch <input id="astro-nationality" maxlength="100"></label>
-      <label>Trạng thái
-        <select id="astro-status">
-          <option value="READY">Sẵn sàng</option>
-          <option value="ON_MISSION">Đang làm nhiệm vụ</option>
-          <option value="RETIRED">Nghỉ hưu</option>
-        </select>
-      </label>
-      <label>Tàu được phân công <select id="astro-ship"></select></label>
-      <div class="form-actions">
-        <button type="button" class="btn" data-close="astroDialog">Hủy</button>
-        <button type="submit" class="btn primary">Lưu</button>
+  <!-- 2. Modal Thêm / Sửa Phi Hành Gia -->
+  <dialog id="astro-modal" class="nusu-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="astro-modal-title">Tuyển Chọn Phi Hành Gia</h3>
+        <button class="modal-close" data-close="astro-modal">✕</button>
       </div>
-    </form>
+      <form id="astro-form" class="modal-form">
+        <input type="hidden" id="astro-id">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Họ và tên *</label>
+            <input type="text" id="astro-name" class="form-control" placeholder="vd: Nguyễn Minh An" required maxlength="100">
+          </div>
+          <div class="form-group">
+            <label>Cấp bậc / Vai trò *</label>
+            <input type="text" id="astro-rank" class="form-control" placeholder="Chỉ huy Trưởng, Phi công..." required maxlength="100">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Quốc tịch</label>
+            <input type="text" id="astro-nationality" class="form-control" placeholder="Việt Nam, Mỹ, Nhật Bản...">
+          </div>
+          <div class="form-group">
+            <label>Nhóm máu</label>
+            <select id="astro-blood" class="form-control">
+              <option value="O+">O+</option>
+              <option value="A+">A+</option>
+              <option value="B+">B+</option>
+              <option value="AB+">AB+</option>
+              <option value="O-">O-</option>
+              <option value="A-">A-</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Trạng thái phi hành gia *</label>
+            <select id="astro-status" class="form-control">
+              <option value="READY">Sẵn sàng (Ready)</option>
+              <option value="ON_MISSION">Đang làm nhiệm vụ (On Mission)</option>
+              <option value="RETIRED">Nghỉ hưu / Huấn luyện viên</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Giờ bay tích lũy (giờ)</label>
+            <input type="number" id="astro-hours" class="form-control" value="100" min="0">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tàu phân công</label>
+            <select id="astro-ship" class="form-control"></select>
+          </div>
+          <div class="form-group">
+            <label>Chiến dịch phân công</label>
+            <select id="astro-mission" class="form-control"></select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nhịp tim cơ bản (BPM)</label>
+            <input type="number" id="astro-bpm" class="form-control" value="70" min="40" max="200">
+          </div>
+          <div class="form-group">
+            <label>Oxy máu SpO₂ (%)</label>
+            <input type="number" id="astro-spo2" class="form-control" value="98" min="70" max="100">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Huy hiệu / Chứng chỉ (phân tách dấu phẩy)</label>
+          <input type="text" id="astro-badges" class="form-control" value="CREW_CERTIFIED,EVA_SPECIALIST">
+          <small class="form-hint">Ví dụ: MOONWALKER, MARS_PIONEER, PILOT_ACE, MASTER_ENGINEER</small>
+        </div>
+
+        <div class="form-group">
+          <label>Tiểu sử & Chuyên môn tóm tắt</label>
+          <textarea id="astro-bio" class="form-control" rows="2" placeholder="Ghi chú thành tích hoặc nghiên cứu chuyên môn..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="astro-modal">Hủy</button>
+          <button type="submit" class="btn btn-primary">Lưu Hồ Sơ</button>
+        </div>
+      </form>
+    </div>
   </dialog>
 
-  <div id="toast" role="status"></div>
+  <!-- 3. Modal Thêm / Sửa Nhiệm Vụ -->
+  <dialog id="mission-modal" class="nusu-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="mission-modal-title">Khởi Tạo Chiến Dịch Vũ Trụ</h3>
+        <button class="modal-close" data-close="mission-modal">✕</button>
+      </div>
+      <form id="mission-form" class="modal-form">
+        <input type="hidden" id="mission-id">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Mã nhiệm vụ (Code) *</label>
+            <input type="text" id="mission-code" class="form-control" placeholder="vd: ARTEMIS-VIII" required maxlength="50">
+          </div>
+          <div class="form-group">
+            <label>Tên chiến dịch *</label>
+            <input type="text" id="mission-name" class="form-control" placeholder="vd: Thám Hiểm Cực Nam Mặt Trăng" required maxlength="100">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Điểm đến *</label>
+            <input type="text" id="mission-dest" class="form-control" placeholder="vd: Mặt Trăng, Sao Hỏa, Trạm ISS..." required maxlength="100">
+          </div>
+          <div class="form-group">
+            <label>Mức độ ưu tiên</label>
+            <select id="mission-priority" class="form-control">
+              <option value="MEDIUM">Trung bình (Medium)</option>
+              <option value="HIGH">Cao (High)</option>
+              <option value="CRITICAL">Khẩn cấp tối cao (Critical)</option>
+              <option value="LOW">Thấp (Low)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Trạng thái chiến dịch *</label>
+            <select id="mission-status" class="form-control">
+              <option value="PLANNING">Lập kế hoạch (Planning)</option>
+              <option value="COUNTDOWN">Đếm ngược (Countdown)</option>
+              <option value="IN_TRANSIT">Đang bay hành trình (In-Transit)</option>
+              <option value="ORBITING">Đang trên quỹ đạo (Orbiting)</option>
+              <option value="LANDED">Đã hạ cánh (Landed)</option>
+              <option value="COMPLETED">Đã hoàn tất (Completed)</option>
+              <option value="ABORTED">Đã hủy (Aborted)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tàu vũ trụ chỉ định</label>
+            <select id="mission-ship" class="form-control"></select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Ngày phóng</label>
+            <input type="date" id="mission-launch" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Ngày kết thúc dự kiến</label>
+            <input type="date" id="mission-return" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Ngân sách chiến dịch (Triệu USD)</label>
+          <input type="number" step="0.1" id="mission-budget" class="form-control" value="250.0" min="0">
+        </div>
+
+        <div class="form-group">
+          <label>Mục tiêu chiến dịch chính</label>
+          <textarea id="mission-objective" class="form-control" rows="3" placeholder="Mô tả mục tiêu nghiên cứu, thăm dò khoa học..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="mission-modal">Hủy</button>
+          <button type="submit" class="btn btn-primary">Phê Duyệt Chiến Dịch</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- 4. Modal Nhật Ký Sự Kiện Chiến Dịch (Mission Logs) -->
+  <dialog id="logs-modal" class="nusu-modal">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h3 id="logs-modal-title">Nhật Ký Chiến Dịch</h3>
+        <button class="modal-close" data-close="logs-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="add-log-box">
+          <form id="add-log-form" class="inline-form">
+            <input type="hidden" id="log-mission-id">
+            <select id="log-level" class="form-control select-sm">
+              <option value="INFO">INFO (Thông tin)</option>
+              <option value="SUCCESS">SUCCESS (Thành công)</option>
+              <option value="WARNING">WARNING (Cảnh báo)</option>
+              <option value="DANGER">DANGER (Nguy hiểm)</option>
+            </select>
+            <input type="text" id="log-text" class="form-control" placeholder="Ghi nhận nhật ký biến cố hoặc trạng thái mới..." required>
+            <button type="submit" class="btn btn-primary btn-sm">Ghi Nhật Ký</button>
+          </form>
+        </div>
+        <div class="timeline-container" id="mission-timeline">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Toast Notification System -->
+  <div id="toast" class="nusu-toast" role="status" aria-live="polite"></div>
+
   <script src="app.js"></script>
 </body>
 </html>
