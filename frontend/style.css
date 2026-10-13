@@ -37,6 +37,28 @@
   padding: 0;
 }
 
+button {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+select, input, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
 body {
   font-family: var(--font-body);
   background: radial-gradient(circle at 50% 0%, #111a3d 0%, var(--bg-space) 40%, var(--bg-deep) 100%);

@@ -30,17 +30,13 @@ public class Spaceship {
     @Column(nullable = false)
     private ShipStatus status;
 
-    @Column(nullable = false)
-    private int fuelLevel = 100; // 0 - 100%
+    private Integer fuelLevel = 100; // 0 - 100%
 
-    @Column(nullable = false)
-    private int oxygenLevel = 100; // 0 - 100%
+    private Integer oxygenLevel = 100; // 0 - 100%
 
-    @Column(nullable = false)
-    private double speedKmS = 7.8; // km/s
+    private Double speedKmS = 7.8; // km/s
 
-    @Column(nullable = false)
-    private double cargoCapacityTons = 10.0; // Tấn tải trọng
+    private Double cargoCapacityTons = 10.0; // Tấn tải trọng
 
     private String manufacturer = "NUSU Aerospace";
 
@@ -55,16 +51,22 @@ public class Spaceship {
     public void setCapacity(int capacity) { this.capacity = capacity; }
     public ShipStatus getStatus() { return status; }
     public void setStatus(ShipStatus status) { this.status = status; }
-    public int getFuelLevel() { return fuelLevel; }
-    public void setFuelLevel(int fuelLevel) { this.fuelLevel = fuelLevel; }
-    public int getOxygenLevel() { return oxygenLevel; }
-    public void setOxygenLevel(int oxygenLevel) { this.oxygenLevel = oxygenLevel; }
-    public double getSpeedKmS() { return speedKmS; }
-    public void setSpeedKmS(double speedKmS) { this.speedKmS = speedKmS; }
-    public double getCargoCapacityTons() { return cargoCapacityTons; }
-    public void setCargoCapacityTons(double cargoCapacityTons) { this.cargoCapacityTons = cargoCapacityTons; }
-    public String getManufacturer() { return manufacturer; }
+
+    public int getFuelLevel() { return fuelLevel != null ? fuelLevel : 100; }
+    public void setFuelLevel(Integer fuelLevel) { this.fuelLevel = fuelLevel; }
+
+    public int getOxygenLevel() { return oxygenLevel != null ? oxygenLevel : 100; }
+    public void setOxygenLevel(Integer oxygenLevel) { this.oxygenLevel = oxygenLevel; }
+
+    public double getSpeedKmS() { return speedKmS != null ? speedKmS : 7.8; }
+    public void setSpeedKmS(Double speedKmS) { this.speedKmS = speedKmS; }
+
+    public double getCargoCapacityTons() { return cargoCapacityTons != null ? cargoCapacityTons : 10.0; }
+    public void setCargoCapacityTons(Double cargoCapacityTons) { this.cargoCapacityTons = cargoCapacityTons; }
+
+    public String getManufacturer() { return manufacturer != null ? manufacturer : "NUSU Aerospace"; }
     public void setManufacturer(String manufacturer) { this.manufacturer = manufacturer; }
-    public Integer getLaunchYear() { return launchYear; }
+
+    public Integer getLaunchYear() { return launchYear != null ? launchYear : 2024; }
     public void setLaunchYear(Integer launchYear) { this.launchYear = launchYear; }
 }

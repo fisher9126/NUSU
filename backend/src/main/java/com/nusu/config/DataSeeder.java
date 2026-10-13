@@ -16,6 +16,7 @@ import com.nusu.repository.MissionLogRepository;
 import com.nusu.repository.MissionRepository;
 import com.nusu.repository.SpaceshipRepository;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -42,101 +43,124 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (ships.count() > 0) {
-            return;
+        // 1. Cập nhật hoặc tạo Tàu vũ trụ
+        Spaceship aurora, nebula, vega, daedalus;
+
+        if (ships.count() == 0) {
+            aurora = createShip("Aurora-1", "Falcon-Heavy X", 4, ShipStatus.ACTIVE, 92, 98, 11.2, 25.0, "NUSU Aerospace", 2024);
+            nebula = createShip("Nebula Orbital", "Orion-M DeepSpace", 6, ShipStatus.MAINTENANCE, 45, 60, 7.8, 18.5, "Orbital Sciences", 2023);
+            vega = createShip("Vega Starliner", "Starship Cargo v3", 6, ShipStatus.ACTIVE, 85, 95, 12.4, 50.0, "SpaceX Industry", 2025);
+            daedalus = createShip("Daedalus-IX", "Prometheus Fusion", 8, ShipStatus.ACTIVE, 99, 100, 24.5, 80.0, "NUSU Deep Exploration", 2026);
+            createShip("Phoenix Lunar", "Eagle-Lander Mk2", 3, ShipStatus.RETIRED, 0, 0, 0.0, 8.0, "Lunar Dynamics", 2020);
+        } else {
+            // Cập nhật giá trị mặc định cho tàu cũ nếu còn thiếu
+            List<Spaceship> existingShips = ships.findAll();
+            for (Spaceship s : existingShips) {
+                if (s.getFuelLevel() <= 0 && s.getStatus() == ShipStatus.ACTIVE) s.setFuelLevel(90);
+                if (s.getOxygenLevel() <= 0 && s.getStatus() == ShipStatus.ACTIVE) s.setOxygenLevel(98);
+                if (s.getSpeedKmS() <= 0 && s.getStatus() == ShipStatus.ACTIVE) s.setSpeedKmS(7.8);
+                if (s.getCargoCapacityTons() <= 0) s.setCargoCapacityTons(15.0);
+                if (s.getManufacturer() == null || s.getManufacturer().isBlank()) s.setManufacturer("NUSU Aerospace");
+                if (s.getLaunchYear() == null) s.setLaunchYear(2024);
+                ships.save(s);
+            }
+            aurora = existingShips.get(0);
+            nebula = existingShips.size() > 1 ? existingShips.get(1) : aurora;
+            vega = existingShips.size() > 2 ? existingShips.get(2) : aurora;
+            daedalus = existingShips.size() > 3 ? existingShips.get(3) : aurora;
         }
 
-        // 1. Tạo các tàu vũ trụ
-        Spaceship aurora = createShip("Aurora-1", "Falcon-Heavy X", 4, ShipStatus.ACTIVE, 92, 98, 11.2, 25.0, "NUSU Aerospace", 2024);
-        Spaceship nebula = createShip("Nebula Orbital", "Orion-M DeepSpace", 6, ShipStatus.MAINTENANCE, 45, 60, 7.8, 18.5, "Orbital Sciences", 2023);
-        Spaceship vega = createShip("Vega Starliner", "Starship Cargo v3", 6, ShipStatus.ACTIVE, 85, 95, 12.4, 50.0, "SpaceX Industry", 2025);
-        Spaceship daedalus = createShip("Daedalus-IX", "Prometheus Fusion", 8, ShipStatus.ACTIVE, 99, 100, 24.5, 80.0, "NUSU Deep Exploration", 2026);
-        Spaceship phoenix = createShip("Phoenix Lunar", "Eagle-Lander Mk2", 3, ShipStatus.RETIRED, 0, 0, 0.0, 8.0, "Lunar Dynamics", 2020);
+        // 2. Tạo Chiến dịch vũ trụ nếu chưa có
+        if (missions.count() == 0) {
+            Mission artemis = createMission(
+                    "ARTEMIS-VII",
+                    "Khảo sát Cực Nam Mặt Trăng",
+                    "Mặt Trăng (Miệng núi Shackleton)",
+                    MissionStatus.IN_TRANSIT,
+                    MissionPriority.CRITICAL,
+                    "2026-09-15",
+                    "2026-11-20",
+                    480.0,
+                    "Tìm kiếm trầm tích băng nước vĩnh cửu tại cực nam và lắp ráp mô-đun năng lượng pin mặt trời.",
+                    aurora
+            );
 
-        // 2. Tạo các Chiến dịch / Nhiệm vụ
-        Mission artemis = createMission(
-                "ARTEMIS-VII",
-                "Khảo sát Cực Nam Mặt Trăng",
-                "Mặt Trăng (Miệng núi Shackleton)",
-                MissionStatus.IN_TRANSIT,
-                MissionPriority.CRITICAL,
-                "2026-09-15",
-                "2026-11-20",
-                480.0,
-                "Tìm kiếm trầm tích băng nước vĩnh cửu tại cực nam và lắp ráp mô-đun năng lượng pin mặt trời.",
-                aurora
-        );
+            Mission ares = createMission(
+                    "ARES-ONE",
+                    "Thám hiểm Tiền trạm Sao Hỏa",
+                    "Sao Hỏa (Đồng bằng Utopia)",
+                    MissionStatus.COUNTDOWN,
+                    MissionPriority.HIGH,
+                    "2026-12-01",
+                    "2028-05-15",
+                    1250.0,
+                    "Triển khai robot tự hành địa chất và kiểm tra khả năng sản xuất oxy tại chỗ (MOXIE-2).",
+                    daedalus
+            );
 
-        Mission ares = createMission(
-                "ARES-ONE",
-                "Thám hiểm Tiền trạm Sao Hỏa",
-                "Sao Hỏa (Đồng bằng Utopia)",
-                MissionStatus.COUNTDOWN,
-                MissionPriority.HIGH,
-                "2026-12-01",
-                "2028-05-15",
-                1250.0,
-                "Triển khai robot tự hành địa chất và kiểm tra khả năng sản xuất oxy tại chỗ (MOXIE-2).",
-                daedalus
-        );
+            Mission issExp = createMission(
+                    "EXPEDITION-74",
+                    "Bảo trì Trạm Vũ trụ Quốc tế",
+                    "Quỹ đạo Trái Đất (LEO 408 km)",
+                    MissionStatus.ORBITING,
+                    MissionPriority.MEDIUM,
+                    "2026-08-01",
+                    "2027-02-15",
+                    120.0,
+                    "Thay thế mảng pin mặt trời iROSA và nghiên cứu tinh thể sinh học trong môi trường vi trọng lực.",
+                    vega
+            );
 
-        Mission issExp = createMission(
-                "EXPEDITION-74",
-                "Bảo trì Trạm Vũ trụ Quốc tế",
-                "Quỹ đạo Trái Đất (LEO 408 km)",
-                MissionStatus.ORBITING,
-                MissionPriority.MEDIUM,
-                "2026-08-01",
-                "2027-02-15",
-                120.0,
-                "Thay thế mảng pin mặt trời iROSA và nghiên cứu tinh thể sinh học trong môi trường vi trọng lực.",
-                vega
-        );
+            // 3. Tạo Nhật ký cho các nhiệm vụ
+            createLog(artemis, LogLevel.SUCCESS, "Tàu Aurora-1 hoàn tất cú đốt TLI (Trans-Lunar Injection) thành công rực rỡ.");
+            createLog(artemis, LogLevel.INFO, "Phi hành đoàn đã vào trạng thái quỹ đạo chuyển tiếp an toàn. Chỉ số oxy ổn định 98%.");
+            createLog(artemis, LogLevel.WARNING, "Cảm biến báo nhiệt độ tấm pin mạn phải tăng nhẹ 3.2°C do góc chiếu Mặt Trời.");
 
-        // 3. Tạo Nhật ký cho các nhiệm vụ
-        createLog(artemis, LogLevel.SUCCESS, "Tàu Aurora-1 hoàn tất cú đốt TLI (Trans-Lunar Injection) thành công rực rỡ.");
-        createLog(artemis, LogLevel.INFO, "Phi hành đoàn đã vào trạng thái quỹ đạo chuyển tiếp an toàn. Chỉ số oxy ổn định 98%.");
-        createLog(artemis, LogLevel.WARNING, "Cảm biến báo nhiệt độ tấm pin mạn phải tăng nhẹ 3.2°C do góc chiếu Mặt Trời.");
+            createLog(ares, LogLevel.INFO, "Hệ thống tự động đã hoàn thành việc nạp nhiên liệu Methane-Oxy lỏng giai đoạn 1.");
+            createLog(ares, LogLevel.INFO, "Đếm ngược T-minus 48 ngày cho chuyến hành trình lịch sử đến Sao Hỏa.");
 
-        createLog(ares, LogLevel.INFO, "Hệ thống tự động đã hoàn thành việc nạp nhiên liệu Methane-Oxy lỏng giai đoạn 1.");
-        createLog(ares, LogLevel.INFO, "Đếm ngược T-minus 48 ngày cho chuyến hành trình lịch sử đến Sao Hỏa.");
+            createLog(issExp, LogLevel.SUCCESS, "Ghép nối thành công vào mô-đun Harmony ở độ cao 412 km.");
 
-        createLog(issExp, LogLevel.SUCCESS, "Ghép nối thành công vào mô-đun Harmony ở độ cao 412 km.");
+            // Gán nhiệm vụ cho phi hành gia nếu có sẵn
+            List<Astronaut> existingAstronauts = astronauts.findAll();
+            if (!existingAstronauts.isEmpty()) {
+                for (int i = 0; i < existingAstronauts.size(); i++) {
+                    Astronaut a = existingAstronauts.get(i);
+                    if (a.getMission() == null) {
+                        a.setMission(i % 2 == 0 ? artemis : issExp);
+                    }
+                    if (a.getHeartRate() <= 0) a.setHeartRate(72);
+                    if (a.getOxygenSaturation() <= 0) a.setOxygenSaturation(98);
+                    if (a.getBadges() == null || a.getBadges().isBlank()) a.setBadges("CREW_CERTIFIED,EVA_SPECIALIST");
+                    astronauts.save(a);
+                }
+            }
+        }
 
-        // 4. Tạo các Phi hành gia
-        createAstronaut("Nguyễn Minh An", "Chỉ huy Trưởng", "Việt Nam", AstronautStatus.ON_MISSION, aurora, artemis,
-                1450, 68, 99, 1.15, "O+",
-                "Cựu phi công thử nghiệm quân sự, đã có 3 chuyến bay vào không gian và 12 giờ đi bộ EVA ngoài không gian.",
-                "MOONWALKER,COMMAND_CREW,EVA_SPECIALIST");
+        // 4. Tạo Phi hành gia nếu danh sách trống
+        if (astronauts.count() == 0) {
+            Mission artemis = missions.findAll().isEmpty() ? null : missions.findAll().get(0);
+            createAstronaut("Nguyễn Minh An", "Chỉ huy Trưởng", "Việt Nam", AstronautStatus.ON_MISSION, aurora, artemis,
+                    1450, 68, 99, 1.15, "O+",
+                    "Cựu phi công thử nghiệm quân sự, đã có 3 chuyến bay vào không gian và 12 giờ đi bộ EVA ngoài không gian.",
+                    "MOONWALKER,COMMAND_CREW,EVA_SPECIALIST");
 
-        createAstronaut("Trần Thu Hà", "Phi công Chuyến bay", "Việt Nam", AstronautStatus.ON_MISSION, aurora, artemis,
-                920, 72, 98, 0.95, "A+",
-                "Chuyên gia điều hướng quỹ đạo và hạ cánh bề mặt thiên thể. Kỹ sư hàng không vũ trụ ĐHBK.",
-                "PILOT_ACE,COMMAND_CREW");
+            createAstronaut("Trần Thu Hà", "Phi công Chuyến bay", "Việt Nam", AstronautStatus.ON_MISSION, aurora, artemis,
+                    920, 72, 98, 0.95, "A+",
+                    "Chuyên gia điều hướng quỹ đạo và hạ cánh bề mặt thiên thể. Kỹ sư hàng không vũ trụ ĐHBK.",
+                    "PILOT_ACE,COMMAND_CREW");
 
-        createAstronaut("Lê Quốc Bảo", "Kỹ sư Hệ thống", "Việt Nam", AstronautStatus.READY, vega, issExp,
-                640, 75, 97, 0.82, "B+",
-                "Chuyên gia robot tự hành và sửa chữa khoang nén chân không. Trưởng đội kỹ thuật NUSU.",
-                "MASTER_ENGINEER,CREW_CERTIFIED");
+            createAstronaut("Lê Quốc Bảo", "Kỹ sư Hệ thống", "Việt Nam", AstronautStatus.READY, vega, artemis,
+                    640, 75, 97, 0.82, "B+",
+                    "Chuyên gia robot tự hành và sửa chữa khoang nén chân không. Trưởng đội kỹ thuật NUSU.",
+                    "MASTER_ENGINEER,CREW_CERTIFIED");
+        }
 
-        createAstronaut("Dr. Sarah Johnson", "Chuyên gia Y tế & Sinh học", "Hoa Kỳ", AstronautStatus.READY, null, ares,
-                1100, 65, 99, 1.40, "AB+",
-                "Bác sĩ phẫu thuật vi trọng lực, tác giả nhiều công trình nghiên cứu tế bào trong bức xạ vũ trụ.",
-                "CHIEF_MEDICAL,EVA_SPECIALIST");
-
-        createAstronaut("Kenji Takahashi", "Chuyên gia Khoa học Địa chất", "Nhật Bản", AstronautStatus.READY, daedalus, ares,
-                810, 70, 98, 1.05, "O-",
-                "Chuyên gia phân tích mẫu đất đá ngoài Trái Đất của cơ quan vũ trụ JAXA.",
-                "MARS_PIONEER,CREW_CERTIFIED");
-
-        createAstronaut("Phạm Văn Hưng", "Phi công Cựu binh", "Việt Nam", AstronautStatus.RETIRED, null, null,
-                2400, 60, 96, 2.50, "A+",
-                "Phi hành gia kỳ cựu đã hoàn thành 5 nhiệm vụ con thoi trước khi nghỉ hưu về giảng dạy.",
-                "LEGEND_ASTRONAUT,MOONWALKER");
-
-        // 5. Tạo Audit logs khởi đầu
-        auditLogs.save(new AuditLog("SYSTEM_BOOT", "Kernel", "Hệ thống NUSU Mission Control khởi động toàn diện."));
-        auditLogs.save(new AuditLog("DISPATCH_MISSION", "Giám đốc Nhiệm vụ", "Phê duyệt chiến dịch ARTEMIS-VII và ARES-ONE."));
+        // 5. Tạo Audit logs khởi đầu nếu chưa có
+        if (auditLogs.count() == 0) {
+            auditLogs.save(new AuditLog("SYSTEM_BOOT", "Kernel", "Hệ thống NUSU Mission Control khởi động toàn diện."));
+            auditLogs.save(new AuditLog("DISPATCH_MISSION", "Giám đốc Nhiệm vụ", "Phê duyệt chiến dịch ARTEMIS-VII và ARES-ONE."));
+        }
     }
 
     private Spaceship createShip(String name, String model, int capacity, ShipStatus status,
