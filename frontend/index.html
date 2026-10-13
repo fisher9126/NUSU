@@ -11,138 +11,182 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="theme-deepspace">
-  <!-- Top Navigation Bar -->
-  <header class="topbar">
-    <div class="brand">
-      <div class="brand-logo">
-        <span class="orbit-ring"></span>
-        <span class="core-dot"></span>
-      </div>
-      <div class="brand-text">
-        <h1 class="logo-title">NUSU</h1>
-        <span class="logo-sub">DEEP SPACE MISSION CONTROL</span>
-      </div>
-    </div>
+  <div class="app-layout">
 
-    <!-- Live Telemetry Ticker -->
-    <div class="telemetry-bar">
-      <div class="tele-item"><span class="tele-label">DSN LINK:</span> <span class="tele-val text-green" id="tele-status">OPTIMAL</span></div>
-      <div class="tele-item"><span class="tele-label">ISS QUỸ ĐẠO:</span> <span class="tele-val" id="tele-iss-alt">408.2 km</span></div>
-      <div class="tele-item"><span class="tele-label">VẬN TỐC:</span> <span class="tele-val" id="tele-iss-vel">7.66 km/s</span></div>
-      <div class="tele-item"><span class="tele-label">ÁP SUẤT KHOANG:</span> <span class="tele-val text-cyan" id="tele-pressure">101.3 kPa</span></div>
-    </div>
-
-    <!-- Header Actions & Role Switcher -->
-    <div class="top-controls">
-      <div class="time-widget">
-        <span class="time-label">EARTH UTC</span>
-        <span class="time-display" id="utc-clock">00:00:00 UTC</span>
+    <!-- ==================== VERTICAL SIDEBAR ==================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-logo">
+            <span class="orbit-ring"></span>
+            <span class="core-dot"></span>
+          </div>
+          <div class="brand-text">
+            <h1 class="logo-title">NUSU</h1>
+            <span class="logo-sub">MISSION CONTROL</span>
+          </div>
+        </div>
+        <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Thu gọn / Mở rộng Sidebar">◀</button>
       </div>
 
-      <div class="role-selector-wrap">
-        <label for="role-select" class="role-label">VAI TRÒ:</label>
-        <select id="role-select" class="role-select" title="Đổi quyền hạn người dùng">
-          <option value="DIRECTOR">Giám Đốc (Director)</option>
-          <option value="COMMANDER">Chỉ Huy Trưởng (Commander)</option>
-          <option value="ENGINEER">Kỹ Sư Trưởng (Engineer)</option>
-          <option value="GUEST">Khách Tham Quan (Guest)</option>
-        </select>
+      <!-- Quick System Status Card -->
+      <div class="sidebar-status-card">
+        <div class="ssc-top">
+          <span class="dot-live"></span>
+          <span class="ssc-title">DEEP SPACE NET</span>
+        </div>
+        <div class="ssc-desc">LINK: OPTIMAL • 3 CHIẾN DỊCH</div>
       </div>
 
-      <button id="audio-toggle" class="btn icon-btn" title="Bật/Tắt hiệu ứng âm thanh Sci-Fi">
-        <span id="audio-icon">🔊</span>
-      </button>
+      <!-- Vertical Navigation Menu -->
+      <nav class="sidebar-nav" role="tablist">
+        <button class="nav-tab active" data-tab="overview" id="tab-btn-overview">
+          <span class="tab-icon">🌐</span>
+          <span class="tab-label">Tổng Quan</span>
+        </button>
+        <button class="nav-tab" data-tab="missions" id="tab-btn-missions">
+          <span class="tab-icon">🎯</span>
+          <span class="tab-label">Chiến Dịch Vũ Trụ</span>
+        </button>
+        <button class="nav-tab" data-tab="ships" id="tab-btn-ships">
+          <span class="tab-icon">🛸</span>
+          <span class="tab-label">Hạm Đội Tàu</span>
+        </button>
+        <button class="nav-tab" data-tab="astronauts" id="tab-btn-astronauts">
+          <span class="tab-icon">👨‍🚀</span>
+          <span class="tab-label">Phi Hành Đoàn</span>
+        </button>
+        <button class="nav-tab" data-tab="simulation" id="tab-btn-simulation">
+          <span class="tab-icon">⚡</span>
+          <span class="tab-label">Giả Lập & Khủng Hoảng</span>
+        </button>
+        <button class="nav-tab" data-tab="discovery" id="tab-btn-discovery">
+          <span class="tab-icon">🛰️</span>
+          <span class="tab-label">NASA & Thiên Văn</span>
+        </button>
+        <button class="nav-tab" data-tab="audit" id="tab-btn-audit">
+          <span class="tab-icon">📜</span>
+          <span class="tab-label">Nhật Ký Chỉ Huy</span>
+        </button>
+      </nav>
 
-      <a href="/swagger-ui/index.html" target="_blank" class="btn api-link-btn" title="Xem tài liệu OpenAPI / Swagger">
-        <span class="api-badge">API</span> DOCS
-      </a>
-    </div>
-  </header>
-
-  <!-- Main Mission Control App -->
-  <main class="control-center">
-
-    <!-- KPI Summary Stats Cards -->
-    <section class="kpi-grid">
-      <div class="kpi-card accent-cyan">
-        <div class="kpi-icon">🚀</div>
-        <div class="kpi-content">
-          <div class="kpi-num" id="stat-missions">0</div>
-          <div class="kpi-label">Chiến Dịch Vũ Trụ</div>
-          <div class="kpi-sub" id="stat-active-missions">0 đang hoạt động</div>
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="op-card">
+          <div class="op-badge-icon">👨‍✈️</div>
+          <div class="op-text">
+            <span class="op-role" id="sidebar-role-badge">DIRECTOR</span>
+            <span class="op-level">Command Level 5</span>
+          </div>
+        </div>
+        <div class="sidebar-action-row">
+          <button id="audio-toggle" class="btn icon-btn" title="Bật/Tắt hiệu ứng âm thanh Sci-Fi">
+            <span id="audio-icon">🔊</span>
+          </button>
+          <a href="/swagger-ui/index.html" target="_blank" class="btn api-link-btn" title="Xem tài liệu OpenAPI / Swagger">
+            <span class="api-badge">API</span> DOCS
+          </a>
         </div>
       </div>
+    </aside>
 
-      <div class="kpi-card accent-blue">
-        <div class="kpi-icon">🛸</div>
-        <div class="kpi-content">
-          <div class="kpi-num" id="stat-ships">0</div>
-          <div class="kpi-label">Hạm Đội Tàu Vũ Trụ</div>
-          <div class="kpi-sub" id="stat-active-ships">0 sẵn sàng bay</div>
+    <!-- ==================== MAIN CONTENT AREA ==================== -->
+    <div class="main-content-wrapper">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="mobile-menu-btn" class="mobile-menu-btn" title="Mở Menu">☰</button>
+          <div class="screen-title-badge">
+            <span class="sub-screen-tag">NUSU // MISSION COMMAND //</span>
+            <h2 class="main-screen-title" id="screen-title">TỔNG QUAN HỆ THỐNG</h2>
+          </div>
         </div>
-      </div>
 
-      <div class="kpi-card accent-purple">
-        <div class="kpi-icon">👨‍🚀</div>
-        <div class="kpi-content">
-          <div class="kpi-num" id="stat-astronauts">0</div>
-          <div class="kpi-label">Phi Hành Gia</div>
-          <div class="kpi-sub" id="stat-mission-astro">0 trên quỹ đạo</div>
+        <!-- Live Telemetry Ticker -->
+        <div class="telemetry-bar">
+          <div class="tele-item"><span class="tele-label">DSN LINK:</span> <span class="tele-val text-green" id="tele-status">OPTIMAL</span></div>
+          <div class="tele-item"><span class="tele-label">ISS QUỸ ĐẠO:</span> <span class="tele-val" id="tele-iss-alt">408.2 km</span></div>
+          <div class="tele-item"><span class="tele-label">VẬN TỐC:</span> <span class="tele-val" id="tele-iss-vel">7.66 km/s</span></div>
+          <div class="tele-item"><span class="tele-label">ÁP SUẤT:</span> <span class="tele-val text-cyan" id="tele-pressure">101.3 kPa</span></div>
         </div>
-      </div>
 
-      <div class="kpi-card accent-amber">
-        <div class="kpi-icon">⚡</div>
-        <div class="kpi-content">
-          <div class="kpi-num"><span id="stat-fuel">0</span><small>%</small></div>
-          <div class="kpi-label">Nhiên Liệu Dự Trữ</div>
-          <div class="kpi-sub">Trung bình hạm đội</div>
+        <!-- Header Actions & Role Switcher -->
+        <div class="top-controls">
+          <div class="time-widget">
+            <span class="time-label">EARTH UTC</span>
+            <span class="time-display" id="utc-clock">00:00:00 UTC</span>
+          </div>
+
+          <div class="role-selector-wrap">
+            <label for="role-select" class="role-label">VAI TRÒ:</label>
+            <select id="role-select" class="role-select" title="Đổi quyền hạn người dùng">
+              <option value="DIRECTOR">Giám Đốc (Director)</option>
+              <option value="COMMANDER">Chỉ Huy Trưởng (Commander)</option>
+              <option value="ENGINEER">Kỹ Sư Trưởng (Engineer)</option>
+              <option value="GUEST">Khách Tham Quan (Guest)</option>
+            </select>
+          </div>
         </div>
-      </div>
+      </header>
 
-      <div class="kpi-card accent-green">
-        <div class="kpi-icon">💨</div>
-        <div class="kpi-content">
-          <div class="kpi-num"><span id="stat-oxygen">0</span><small>%</small></div>
-          <div class="kpi-label">Dự Trữ Dưỡng Khí O₂</div>
-          <div class="kpi-sub">Khoang sinh tồn an toàn</div>
-        </div>
-      </div>
+      <!-- Main Mission Control App -->
+      <main class="control-center">
 
-      <div class="kpi-card accent-gold">
-        <div class="kpi-icon">💎</div>
-        <div class="kpi-content">
-          <div class="kpi-num">$<span id="stat-budget">0</span><small>M</small></div>
-          <div class="kpi-label">Ngân Sách Đầu Tư</div>
-          <div class="kpi-sub">Tổng giá trị nhiệm vụ</div>
-        </div>
-      </div>
-    </section>
+        <!-- KPI Summary Stats Cards -->
+        <section class="kpi-grid">
+          <div class="kpi-card accent-cyan">
+            <div class="kpi-icon">🚀</div>
+            <div class="kpi-content">
+              <div class="kpi-num" id="stat-missions">0</div>
+              <div class="kpi-label">Chiến Dịch Vũ Trụ</div>
+              <div class="kpi-sub" id="stat-active-missions">0 đang hoạt động</div>
+            </div>
+          </div>
 
-    <!-- Main Navigation Tabs -->
-    <nav class="nav-tabs" role="tablist">
-      <button class="nav-tab active" data-tab="overview" id="tab-btn-overview">
-        <span class="tab-icon">🌐</span> Tổng Quan
-      </button>
-      <button class="nav-tab" data-tab="missions" id="tab-btn-missions">
-        <span class="tab-icon">🎯</span> Chiến Dịch & Nhiệm Vụ
-      </button>
-      <button class="nav-tab" data-tab="ships" id="tab-btn-ships">
-        <span class="tab-icon">🛸</span> Hạm Đội Tàu
-      </button>
-      <button class="nav-tab" data-tab="astronauts" id="tab-btn-astronauts">
-        <span class="tab-icon">👨‍🚀</span> Phi Hành Đoàn
-      </button>
-      <button class="nav-tab" data-tab="simulation" id="tab-btn-simulation">
-        <span class="tab-icon">⚡</span> Giả Lập & Khủng Hoảng
-      </button>
-      <button class="nav-tab" data-tab="discovery" id="tab-btn-discovery">
-        <span class="tab-icon">🛰️</span> NASA & Thiên Văn
-      </button>
-      <button class="nav-tab" data-tab="audit" id="tab-btn-audit">
-        <span class="tab-icon">📜</span> Nhật Ký Chỉ Huy
-      </button>
-    </nav>
+          <div class="kpi-card accent-blue">
+            <div class="kpi-icon">🛸</div>
+            <div class="kpi-content">
+              <div class="kpi-num" id="stat-ships">0</div>
+              <div class="kpi-label">Hạm Đội Tàu Vũ Trụ</div>
+              <div class="kpi-sub" id="stat-active-ships">0 sẵn sàng bay</div>
+            </div>
+          </div>
+
+          <div class="kpi-card accent-purple">
+            <div class="kpi-icon">👨‍🚀</div>
+            <div class="kpi-content">
+              <div class="kpi-num" id="stat-astronauts">0</div>
+              <div class="kpi-label">Phi Hành Gia</div>
+              <div class="kpi-sub" id="stat-mission-astro">0 trên quỹ đạo</div>
+            </div>
+          </div>
+
+          <div class="kpi-card accent-amber">
+            <div class="kpi-icon">⚡</div>
+            <div class="kpi-content">
+              <div class="kpi-num"><span id="stat-fuel">0</span><small>%</small></div>
+              <div class="kpi-label">Nhiên Liệu Dự Trữ</div>
+              <div class="kpi-sub">Trung bình hạm đội</div>
+            </div>
+          </div>
+
+          <div class="kpi-card accent-green">
+            <div class="kpi-icon">💨</div>
+            <div class="kpi-content">
+              <div class="kpi-num"><span id="stat-oxygen">0</span><small>%</small></div>
+              <div class="kpi-label">Dự Trữ Dưỡng Khí O₂</div>
+              <div class="kpi-sub">Khoang sinh tồn an toàn</div>
+            </div>
+          </div>
+
+          <div class="kpi-card accent-gold">
+            <div class="kpi-icon">💎</div>
+            <div class="kpi-content">
+              <div class="kpi-num">$<span id="stat-budget">0</span><small>M</small></div>
+              <div class="kpi-label">Ngân Sách Đầu Tư</div>
+              <div class="kpi-sub">Tổng giá trị nhiệm vụ</div>
+            </div>
+          </div>
+        </section>
 
     <!-- ==================== TAB 0: TỔNG QUAN (OVERVIEW) ==================== -->
     <section id="panel-overview" class="view-panel active">
@@ -468,7 +512,8 @@
       </div>
     </section>
   </main>
-
+    </div> <!-- /.main-content-wrapper -->
+  </div> <!-- /.app-layout -->
   <!-- ==================== MODALS / DIALOGS ==================== -->
 
   <!-- 1. Modal Thêm / Sửa Tàu Vũ Trụ -->
