@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NUSU - Quản lý tàu vũ trụ và phi hành gia</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>NUSU</h1>
+    <p>Trung tâm quản lý tàu vũ trụ và phi hành gia</p>
+  </header>
+
+  <main>
+    <section class="stats">
+      <div class="card"><span id="stat-ships">0</span><small>Tàu vũ trụ</small></div>
+      <div class="card"><span id="stat-active">0</span><small>Tàu đang hoạt động</small></div>
+      <div class="card"><span id="stat-astronauts">0</span><small>Phi hành gia</small></div>
+      <div class="card"><span id="stat-mission">0</span><small>Đang làm nhiệm vụ</small></div>
+    </section>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="ships">Tàu vũ trụ</button>
+      <button class="tab" data-tab="astronauts">Phi hành gia</button>
+    </nav>
+
+    <section id="tab-ships" class="panel">
+      <div class="toolbar">
+        <h2>Danh sách tàu vũ trụ</h2>
+        <button class="btn primary" id="add-ship">Thêm tàu</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Tên tàu</th><th>Mẫu</th><th>Phi hành đoàn</th><th>Trạng thái</th><th></th></tr>
+          </thead>
+          <tbody id="ships-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tab-astronauts" class="panel" hidden>
+      <div class="toolbar">
+        <h2>Danh sách phi hành gia</h2>
+        <button class="btn primary" id="add-astronaut">Thêm phi hành gia</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Họ tên</th><th>Cấp bậc</th><th>Quốc tịch</th><th>Trạng thái</th><th>Tàu</th><th></th></tr>
+          </thead>
+          <tbody id="astronauts-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="shipDialog">
+    <form id="shipForm">
+      <h3 id="shipTitle">Thêm tàu vũ trụ</h3>
+      <input type="hidden" id="ship-id">
+      <label>Tên tàu <input id="ship-name" required maxlength="100"></label>
+      <label>Mẫu tàu <input id="ship-model" required maxlength="100"></label>
+      <label>Sức chứa (người) <input id="ship-capacity" type="number" min="1" max="100" value="4" required></label>
+      <label>Trạng thái
+        <select id="ship-status">
+          <option value="ACTIVE">Hoạt động</option>
+          <option value="MAINTENANCE">Bảo trì</option>
+          <option value="RETIRED">Ngừng hoạt động</option>
+        </select>
+      </label>
+      <div class="form-actions">
+        <button type="button" class="btn" data-close="shipDialog">Hủy</button>
+        <button type="submit" class="btn primary">Lưu</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="astroDialog">
+    <form id="astroForm">
+      <h3 id="astroTitle">Thêm phi hành gia</h3>
+      <input type="hidden" id="astro-id">
+      <label>Họ tên <input id="astro-name" required maxlength="100"></label>
+      <label>Cấp bậc <input id="astro-rank" required maxlength="100" placeholder="Chỉ huy, Phi công, Kỹ sư..."></label>
+      <label>Quốc tịch <input id="astro-nationality" maxlength="100"></label>
+      <label>Trạng thái
+        <select id="astro-status">
+          <option value="READY">Sẵn sàng</option>
+          <option value="ON_MISSION">Đang làm nhiệm vụ</option>
+          <option value="RETIRED">Nghỉ hưu</option>
+        </select>
+      </label>
+      <label>Tàu được phân công <select id="astro-ship"></select></label>
+      <div class="form-actions">
+        <button type="button" class="btn" data-close="astroDialog">Hủy</button>
+        <button type="submit" class="btn primary">Lưu</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
